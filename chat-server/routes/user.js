@@ -8,9 +8,16 @@ const router = express.Router()
 // 用户登录
 /*
   body:
-  mail: [required, String], 用户邮箱
+  phone: [required, String], 手机
   password: [required, String], 密码
   */
 router.post('/login', user_controller.userLogin)
+
+/*
+  body:
+  phone: [required, String], 手机
+  password: [required, String], 密码
+  */
+  router.post('/register', user_controller.userRegister)
 
 export default router

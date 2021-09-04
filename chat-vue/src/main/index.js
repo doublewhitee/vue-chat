@@ -1,6 +1,6 @@
 'use strict'
 
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain } from 'electron'
 import '../renderer/store'
 
 /**
@@ -21,12 +21,16 @@ function createWindow () {
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    height: 563,
+    height: 550,
+    width: 400,
+    frame: false,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false,
     useContentSize: true,
-    width: 1000,
     webPreferences: {
       nodeIntegration: true, // 在网页中集成Node
-      // contextIsolation: false,
+      contextIsolation: false,
       enableRemoteModule: true // 打开remote模块
     }
   })
@@ -50,6 +54,19 @@ app.on('activate', () => {
   if (mainWindow === null) {
     createWindow()
   }
+})
+
+ipcMain.on('CHANGE_WINDOW_SIZE', e => {
+  mainWindow.setSize(1000, 600)
+  mainWindow.center()
+})
+
+ipcMain.on('MINIMIZE', e => {
+  mainWindow.minimize()
+})
+
+ipcMain.on('CLOSE', e => {
+  mainWindow.close()
 })
 
 /**
