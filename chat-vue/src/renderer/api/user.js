@@ -15,3 +15,22 @@ export function reqRegister (phone, password) {
     data: { phone, password }
   })
 }
+
+export function reqUploadAvatar (file) {
+  return request({
+    url: '/user/upload',
+    method: 'post',
+    data: file,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export function reqUpdateUser (info, _id) {
+  return request({
+    url: '/user/update',
+    method: 'post',
+    data: { info, _id }
+  })
+}

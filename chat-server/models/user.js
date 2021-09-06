@@ -9,9 +9,8 @@ const userSchema = new Schema({
   phone: { type: String, required: true },
   username: { type: String, default: 'USER' },
   password: { type: String, required: true },
-  avatar: { type: String },
-  create_at: { type: Date, default: Date.now },
-  update_at: { type: Date, default: Date.now }
+  avatar: { type: String, default: 'user.jpg' },
+  create_at: { type: Date, default: Date.now }
 })
 
 const User = mongoose.model('User', userSchema)

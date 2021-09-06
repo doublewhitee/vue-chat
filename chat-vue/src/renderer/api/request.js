@@ -1,9 +1,11 @@
 import axios from 'axios'
 import Vue from 'vue'
 
+import { BASE_URL } from '../config/constant'
+
 export function request (config) {
   const instance = axios.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: BASE_URL,
     timeout: 10000,
     withCredentials: true
   })

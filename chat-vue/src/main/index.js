@@ -56,8 +56,15 @@ app.on('activate', () => {
   }
 })
 
-ipcMain.on('CHANGE_WINDOW_SIZE', e => {
+ipcMain.on('LOG_IN', e => {
   mainWindow.setSize(1000, 600)
+  mainWindow.center()
+})
+
+ipcMain.on('LOG_OUT', e => {
+  mainWindow.setSize(400, 550)
+  mainWindow.setMaximumSize(400, 550)
+  mainWindow.setMinimumSize(400, 550)
   mainWindow.center()
 })
 

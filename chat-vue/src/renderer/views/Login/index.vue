@@ -142,7 +142,7 @@ export default {
             this.$store.dispatch('LOGIN', this.formData).then(res => {
               if (res) {
                 if (res.code === 0) {
-                  ipcRenderer.send('CHANGE_WINDOW_SIZE')
+                  ipcRenderer.send('LOG_IN')
                   this.$message.success('登陆成功！')
                   this.$router.push('/chat')
                 } else {

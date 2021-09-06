@@ -3,6 +3,7 @@
 import UserModel from '../models/user.js'
 import md5 from 'blueimp-md5'
 import { decryptAES } from '../utils/secret.js'
+import config from 'config'
 
 class user_controller {
   // 用户登录
@@ -36,6 +37,40 @@ class user_controller {
       }
     } catch (error) {
       res.send({ code: 2, msg: '注册异常, 请重新尝试！' })
+    }
+  }
+
+  // 更新用户信息
+  async userUpdate (req, res, next) {
+    try {
+      const { info, _id } = req.body
+      if (info.phone) {
+        const user = await UserModel.findOne({ _id: { $ne: _id }, phone: info.phone })
+        if (user) {
+          res.send({ code: 1, msg: '此手机号已被使用！' })
+          return
+        }
+      }
+      const u = await UserModel.findByIdAndUpdate(_id, info, { new: true })
+      res.send({ code: 0, data: u })
+    } catch (error) {
+      res.send({ code: 2, msg: '更新用户信息失败, 请重新尝试！' })
+    }
+  }
+
+  // 上传头像
+  async uploadImg (req, res, next) {
+    try {
+      const file = req.files[0]
+      res.send({
+        code: 0,
+        data: {
+          name: file.filename,
+          url: config.img_url + file.filename
+        }
+      })
+    } catch (error) {
+      res.send({ code: 1, msg: '上传图片失败, 请重新尝试！' })
     }
   }
 }
