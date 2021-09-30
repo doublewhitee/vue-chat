@@ -44,5 +44,12 @@ router.post('/register', user_controller.userRegister)
   info: [required, Object], 更新信息
 */
 router.post('/update', user_controller.userUpdate)
+// 获取用户信息
+/*
+  query:
+  user_id: [required, String], 当前用户_id
+  friend_id: [required, String], 查询用户_id
+*/
+router.get('/info', user_controller.reqUserInfo)
 
 export default router
