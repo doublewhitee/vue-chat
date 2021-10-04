@@ -15,4 +15,13 @@ const router = express.Router()
 */
 router.get('/addlist', friend_controller.getUserToAdd)
 
+// 添加好友
+/*
+  body:
+  addText: [required, String], 好友请求内容
+  user_id: [required, String], 用户_id
+  friend_id: [required, String], 所添加好友_id
+*/
+router.post('/add', friend_controller.addFriend)
+
 export default router

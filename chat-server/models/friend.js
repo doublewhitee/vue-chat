@@ -11,6 +11,6 @@ const friendSchema = new Schema({
   create_at: { type: Date, default: Date.now }
 })
 
-const Friend = mongoose.model('Chat', friendSchema)
+const Friend = mongoose.model('Friend', friendSchema)
 
 export default Friend

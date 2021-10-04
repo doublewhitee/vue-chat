@@ -1,8 +1,10 @@
 import express from 'express'
-import router from './routes/index.js'
 import config from 'config'
-import conn from './mongoDB/db.js'
 import cookieParser from 'cookie-parser'
+import morgan from 'morgan'
+import router from './routes/index.js'
+import './mongoDB/db.js'
+import { setSocket } from './websocket/websocket.js'
 
 const app = express()
 
@@ -10,6 +12,7 @@ const app = express()
 app.all('*', (req, res, next) => {
   // 设置请求头为允许跨域
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  console.log(req.headers.origin)
   // 设置服务器支持的所有头信息字段
   res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild, sessionToken');
   // 设置服务器支持的所有跨域请求的方法
@@ -25,8 +28,14 @@ app.use(cookieParser());
 
 app.use(express.static('public'))
 
+// logger
+app.use(morgan(':method :url :status'))
+
 router(app)
 
 app.server = app.listen(config.port, () => {
   console.log(`server running @ http://${ config.host }:${ config.port }`)
 })
+
+// socket.io
+setSocket(app.server)
