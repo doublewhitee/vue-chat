@@ -30,6 +30,7 @@ router.post('/upload', upload.any(), user_controller.uploadImg)
   password: [required, String], 密码
 */
 router.post('/login', user_controller.userLogin)
+
 // 用户注册
 /*
   body:
@@ -37,6 +38,7 @@ router.post('/login', user_controller.userLogin)
   password: [required, String], 密码
 */
 router.post('/register', user_controller.userRegister)
+
 // 用户信息更新
 /*
   body:
@@ -44,6 +46,7 @@ router.post('/register', user_controller.userRegister)
   info: [required, Object], 更新信息
 */
 router.post('/update', user_controller.userUpdate)
+
 // 获取用户信息
 /*
   query:

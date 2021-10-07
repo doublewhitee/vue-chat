@@ -1,5 +1,7 @@
 'use strict';
 
+import mongoose from 'mongoose'
+
 import FriendModel from '../models/friend.js'
 import UserModel from '../models/user.js'
 import GroupModel from '../models/group.js'
@@ -7,6 +9,40 @@ import ChatModel from '../models/chat.js'
 
 class friend_controller {
   // 获取好友列表
+  async getFriendList(req, res, next) {
+    try {
+      const { _id } = req.query
+      const friends = await FriendModel.find({ user_id: _id }).populate('friend_id', 'username avatar')
+      res.send({ code: 0, data: friends })
+    } catch (error) {
+      res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
+    }
+  }
+
+  // 添加好友
+  async addFriend(req, res, next) {
+    try {
+      const { user_id, friend_id, friend_name, group_id } = req.body
+      await FriendModel.create({ user_id, friend_id, friend_name })
+      await FriendModel.create({ user_id: friend_id, friend_id: user_id })
+      await GroupModel.findByIdAndUpdate(group_id, { type: 'single' })
+      res.send({ code: 0, data: 'success' })
+    } catch (error) {
+      res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
+    }
+  }
+
+  // 忽略好友请求(删除group及chat信息)
+  async ignoreRequest(req, res, next) {
+    try {
+      const { _id } = req.body
+      await GroupModel.findByIdAndDelete(_id)
+      await ChatModel.deleteMany({ group: _id })
+      res.send({ code: 0, data: 'success' })
+    } catch (error) {
+      res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
+    }
+  }
 
   // 查找好友列表
   async getUserToAdd(req, res, next) {
@@ -39,8 +75,8 @@ class friend_controller {
     }
   }
 
-  // 添加好友
-  async addFriend(req, res, next) {
+  // 发送好友申请
+  async sendRequest(req, res, next) {
     try {
       // 好友申请内容
       const { addText, user_id, friend_id } = req.body
@@ -60,10 +96,48 @@ class friend_controller {
       } else {
         const group_id = isGroup._id
         await ChatModel.create({ user: user_id, group: group_id, content: addText, unread_list: [ friend_id ] })
+        await GroupModel.findByIdAndUpdate(group_id, { update_at: new Date() })
       }
       res.send({ code: 0, data: 'success' })
     } catch (error) {
-      console.log(error)
+      res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
+    }
+  }
+
+  // 获取新的朋友（好友请求）列表
+  async friendRequest(req, res, next) {
+    try {
+      const { user_id } = req.body
+      const newFriendRequests = await ChatModel.aggregate([
+        { $lookup: { from: 'groups', localField: 'group', foreignField: '_id', as: 'group_info' } },
+        { $lookup: { from: 'users', localField: 'user', foreignField: '_id', as: 'user_info' } },
+        { $unwind: '$group_info' },
+        { $unwind: '$user_info' },
+        { $match: {
+          'group_info.type': 'new',
+          'group_info.user_list': { $in: [ mongoose.Types.ObjectId(user_id) ]},
+          'user': { $ne: mongoose.Types.ObjectId(user_id) }
+        }},
+        { $group: 
+          {
+            _id: '$group_info._id',
+            update_at: { $max: '$group_info.update_at' },
+            detail: {
+              $push: {
+                _id: '$user_info._id',
+                username: '$user_info.username',
+                avatar: '$user_info.avatar',
+                phone: '$user_info.phone',
+                content: '$content',
+                create_at: '$create_at'
+              }
+            }
+          } 
+        },
+        { $sort: { 'update_at': -1 } }
+      ])
+      res.send({ code: 0, data: newFriendRequests })
+    } catch (error) {
       res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
     }
   }

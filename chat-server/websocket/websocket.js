@@ -25,7 +25,8 @@ export function setSocket(app) {
         { $match: {
           'group_info.type': 'new',
           'group_info.user_list': { $in: [ mongoose.Types.ObjectId(data._id) ]},
-          'user': { $ne: mongoose.Types.ObjectId(data._id) }
+          'user': { $ne: mongoose.Types.ObjectId(data._id) },
+          'unread_list': { $not: { $in: [ mongoose.Types.ObjectId(data._id) ] } }
         }},
         { $group: { _id: '$group_info._id' } }
       ])

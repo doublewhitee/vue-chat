@@ -12,7 +12,6 @@ const app = express()
 app.all('*', (req, res, next) => {
   // 设置请求头为允许跨域
   res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  console.log(req.headers.origin)
   // 设置服务器支持的所有头信息字段
   res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild, sessionToken');
   // 设置服务器支持的所有跨域请求的方法
