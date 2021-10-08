@@ -6,7 +6,7 @@
     text-color="#fff"
     active-text-color="#ffd04b"
     @select="handleSelect"
-    default-active="/chat/index"
+    :default-active="$route.path"
     >
     <el-popover placement="right" trigger="click" width="300">
       <div class="user-card">
@@ -30,7 +30,7 @@
       />
     </el-popover>
 
-    <el-menu-item index="/chat/index">
+    <el-menu-item index="/chat/group">
       <i class="el-icon-message-solid" />
       <span slot="title">聊天</span>
     </el-menu-item>
@@ -112,6 +112,7 @@ export default {
     async handleCommand (command) {
       if (command === 'logout') {
         await this.$confirm('您确定要退出登录吗？').then(async () => {
+          this.$socket.emit('logout', { _id: this.$store.state.User._id })
           this.$store.commit('CLEAR_USER_STATE')
           this.$router.replace('/login')
           ipcRenderer.send('LOG_OUT')

@@ -4,10 +4,8 @@
       <SideBar />
     </el-aside>
     <el-container>
-      <el-header style="position: relative">
-        <ToolBar color="#000" />
-      </el-header>
-      <el-main>
+      <ToolBar color="#000" />
+      <el-main style="padding: 0px;">
         <router-view />
       </el-main>
     </el-container>

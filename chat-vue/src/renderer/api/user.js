@@ -34,3 +34,10 @@ export function reqUpdateUser (info, _id) {
     data: { info, _id }
   })
 }
+
+export function reqUserInfo (userId, friendId) {
+  return request({
+    url: '/user/info',
+    params: { user_id: userId, friend_id: friendId }
+  })
+}

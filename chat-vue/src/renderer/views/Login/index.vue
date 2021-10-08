@@ -144,6 +144,7 @@ export default {
                 if (res.code === 0) {
                   ipcRenderer.send('LOG_IN')
                   this.$message.success('登陆成功！')
+                  this.$socket.emit('login', { _id: res.data._id })
                   this.$router.push('/chat')
                 } else {
                   this.$message.error(res.msg)

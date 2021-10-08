@@ -79,10 +79,10 @@ class user_controller {
   async reqUserInfo (req, res, next) {
     try {
       const { user_id, friend_id } = req.query
-      const isFriend = await FriendModel.findOne({ user_id, friend_id })
+      const friend = await FriendModel.findOne({ user_id, friend_id })
       const user = await UserModel.findOne({ _id: friend_id }, { password: 0 })
       if (user) {
-        res.send({ code: 0, data: user, isFriend: Boolean(isFriend) })
+        res.send({ code: 0, data: user, friend })
       } else {
         res.send({ code: 1, msg: '未查询到该用户信息！' })
       }

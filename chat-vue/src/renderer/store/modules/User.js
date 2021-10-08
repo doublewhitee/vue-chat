@@ -5,7 +5,8 @@ const state = {
   _id: '',
   username: '',
   phone: '',
-  avatar: ''
+  avatar: '',
+  messageCount: {} // 未读消息数
 }
 
 const mutations = {
@@ -20,6 +21,12 @@ const mutations = {
   },
   CLEAR_USER_STATE (state) {
     Object.keys(state).forEach(k => { state[k] = '' })
+  },
+  SET_MESSAGE_COUNT (state, payload) {
+    state.messageCount = payload
+  },
+  CHANGE_MESSAGE_COUNT (state, payload) {
+    state.messageCount[payload.id] = state.messageCount[payload.id] + payload.count
   }
 }
 

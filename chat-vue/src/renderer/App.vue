@@ -6,7 +6,15 @@
 
 <script>
   export default {
-    name: 'chat-vue'
+    name: 'chat-vue',
+    sockets: {
+      count (messageCount) {
+        this.$store.commit('SET_MESSAGE_COUNT', messageCount)
+      },
+      count_change (data) {
+        this.$store.commit('CHANGE_MESSAGE_COUNT', data)
+      }
+    }
   }
 </script>
 

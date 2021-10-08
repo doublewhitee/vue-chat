@@ -15,11 +15,17 @@ export default new Router({
     {
       path: '/chat',
       component: Layout,
-      redirect: '/chat/index',
-      children: [{
-        path: 'index',
-        component: () => import('@/views/Chat')
-      }]
+      redirect: '/chat/group',
+      children: [
+        {
+          path: 'group',
+          component: () => import('@/views/Chat')
+        },
+        {
+          path: 'friend',
+          component: () => import('@/views/Friend')
+        }
+      ]
     },
     {
       path: '*',

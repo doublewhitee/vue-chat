@@ -57,7 +57,7 @@ app.on('activate', () => {
 })
 
 ipcMain.on('LOG_IN', e => {
-  mainWindow.setSize(1000, 600)
+  mainWindow.setSize(900, 600)
   mainWindow.center()
 })
 
