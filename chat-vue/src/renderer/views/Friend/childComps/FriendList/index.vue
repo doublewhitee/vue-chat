@@ -1,7 +1,8 @@
 <template>
   <div class="main">
-    <SearchBar @clickAddBtn="handleAddFriend"/>
-    <List />
+    <SearchBar @clickAddBtn="handleAddFriend" @searchFriend="getSearchFriend" />
+    <List v-if="searchText===''" />
+    <SearchList v-else :searchText="searchText" />
 
     <el-dialog
       title="添加好友"
@@ -86,6 +87,7 @@
 <script>
 import SearchBar from '@/components/SearchBar'
 import List from './List'
+import SearchList from './SearchList.vue'
 
 import { reqUserToAdd, reqAddFriend } from '@/api/friend'
 import { reqUserInfo } from '@/api/user'
@@ -97,7 +99,8 @@ const addPrompt = '请输入手机号进行查询，开始添加好友吧！'
 export default {
   components: {
     SearchBar,
-    List
+    List,
+    SearchList
   },
   data () {
     return {
@@ -110,12 +113,12 @@ export default {
       addUserTotal: 0, // 搜索出的条目总数
       detailDialogVisible: false,
       detailInfo: null,
-      addRequestText: ''
+      addRequestText: '',
+      searchText: ''
     }
   },
   methods: {
     handleAddFriend () {
-      this.$socket.emit('send_chat', 'a')
       this.addDialogVisible = true
       this.addSearchInput = ''
       this.addUserMsg = addPrompt
@@ -172,6 +175,9 @@ export default {
           this.addUserMsg = res.msg
         }
       }
+    },
+    getSearchFriend (searchText) {
+      this.searchText = searchText
     },
     highlightText
   }

@@ -11,8 +11,14 @@ class friend_controller {
   // 获取好友列表
   async getFriendList(req, res, next) {
     try {
-      const { _id } = req.query
-      const friends = await FriendModel.find({ user_id: _id }).populate('friend_id', 'username avatar')
+      const { _id, searchText } = req.body
+      const friends = await FriendModel.find(
+        searchText === '' ?
+        { user_id: _id } : {
+          user_id: _id,
+          friend_name: { $regex: searchText }
+        }
+      ).populate('friend_id', 'username avatar')
       res.send({ code: 0, data: friends })
     } catch (error) {
       res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
@@ -137,6 +143,44 @@ class friend_controller {
         { $sort: { 'update_at': -1 } }
       ])
       res.send({ code: 0, data: newFriendRequests })
+    } catch (error) {
+      res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
+    }
+  }
+
+  // 修改备注名
+  async changeNickname(req, res, next) {
+    try {
+      const { user_id, friend_id, friend_name } = req.body
+      const friend = await FriendModel.findOneAndUpdate({ user_id, friend_id }, { friend_name })
+      if (friend) {
+        res.send({ code: 0, data: friend })
+      } else {
+        res.send({ code: 1, msg: '未查找到相关信息！' })
+      }
+    } catch (error) {
+      res.send({ code: 2, msg: '请求错误, 请重新尝试！' })
+    }
+  }
+
+  // 删除好友
+  async deleteFriend(req, res, next) {
+    try {
+      const { user_id, friend_id } = req.body
+      await FriendModel.findOneAndDelete({ user_id, friend_id })
+      await FriendModel.findOneAndDelete({ user_id: friend_id, friend_id: user_id })
+      const group = await GroupModel.findOne({
+        $and: [
+          { user_list: { $elemMatch: { $eq: user_id }} },
+          { user_list: { $elemMatch: { $eq: friend_id }} }
+        ],
+        user_list: { $size: 2 },
+        type: 'single'
+      })
+      const group_id = group._id
+      await GroupModel.findByIdAndDelete(group_id)
+      await ChatModel.deleteMany({ group: group_id })
+      res.send({ code: 0, msg: '删除好友及相关信息成功！' })
     } catch (error) {
       res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
     }

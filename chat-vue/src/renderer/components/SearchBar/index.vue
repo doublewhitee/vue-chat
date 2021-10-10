@@ -1,6 +1,13 @@
 <template>
   <div class="container">
-    <el-input size="mini" placeholder="请输入" class="no-drag" style="padding-right: 10px">
+    <el-input
+      v-model="searchText"
+      @input="handleInputChange"
+      size="mini"
+      placeholder="请输入"
+      class="no-drag"
+      style="padding-right: 10px"
+    >
       <i slot="prefix" class="el-input__icon el-icon-search" />
     </el-input>
     <el-button
@@ -14,11 +21,22 @@
 </template>
 
 <script>
+import { debounce } from '@/utils'
+
 export default {
+  data () {
+    return {
+      searchText: ''
+    }
+  },
   methods: {
     handleClickBtn () {
       this.$emit('clickAddBtn')
-    }
+    },
+    handleInputChange:
+      debounce(function () {
+        this.$emit('searchFriend', this.searchText.trim())
+      }, 500)
   }
 }
 </script>

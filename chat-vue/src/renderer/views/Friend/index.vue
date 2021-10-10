@@ -2,8 +2,8 @@
   <div style="height: 100%; display: flex;">
     <FriendList />
     
-    <div style="width: 600px">
-      <div v-if="$route.query && $route.query.id">
+    <div style="width: 600px;">
+      <div v-if="$route.query && $route.query.id" style="height: 100%">
         <div v-if="$route.query.id === 'new_friend'">
           <Header title="新的朋友" />
           <div v-if="newFriendList.length > 0">
@@ -34,6 +34,49 @@
           </div>
 
           <div v-else class="prompt">还没有收到好友请求哦</div>
+        </div>
+
+        <div v-else class="user-info-container">
+          <div class="user-info">
+            <div style="display: flex; align-items: center">
+              <el-image
+                style="width: 80px; height: 80px; margin-right: 30px"
+                :src="BASE_IMG_URL + currentUserInfo.avatar"
+                alt="avatar"
+                :preview-src-list="[BASE_IMG_URL + currentUserInfo.avatar]"
+              />
+              <div style="font-weight: bold; font-size: 18px">{{ currentUserInfo.username }}</div>
+            </div>
+            <el-divider />
+            <div>
+              <div class="user-info-detail">
+                <span class="user-info-detail-title">备注名</span>
+                <span v-if="!editNicknameMode">{{ currentUserInfo.friend_name }}</span>
+                <div v-else style="display: flex">
+                  <el-input v-model="nickname" size="small" />
+                  <el-button size="mini" type="primary" @click="handleConfirmChangeName" style="margin-left: 10px">确认</el-button>
+                </div>
+              </div>
+              <div class="user-info-detail">
+                <span class="user-info-detail-title">手 机</span>
+                <span>{{ currentUserInfo.phone }}</span>
+              </div>
+              <div class="user-info-detail">
+                <span class="user-info-detail-title">_id</span>
+                <span>{{ currentUserInfo._id }}</span>
+              </div>
+            </div>
+            <div style="text-align: center; margin-top: 50px">
+              <el-button type="primary" style="margin-right: 10px">聊天</el-button>
+              <el-dropdown trigger="click" @command="handleFriendCommand">
+                <el-button>更多<i class="el-icon-arrow-down el-icon--right" /></el-button>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="changeName">修改备注</el-dropdown-item>
+                  <el-dropdown-item divided command="delete">删除好友</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -90,7 +133,8 @@
 import FriendList from './childComps/FriendList'
 import Header from '@/components/Header'
 
-import { reqAcceptFriend, reqNewFriendList, reqIgnoreRequest } from '@/api/friend'
+import { reqAcceptFriend, reqNewFriendList, reqIgnoreRequest, reqChangeNickname, reqDeleteFriend } from '@/api/friend'
+import { reqUserInfo } from '@/api/user'
 import { BASE_IMG_URL } from '@/config/constant'
 
 export default {
@@ -106,15 +150,28 @@ export default {
       dialogTitle: '',
       currentUserInfo: {},
       currentGroupId: '',
+      editNicknameMode: false,
       nickname: '',
       BASE_IMG_URL
     }
   },
   watch: {
-    '$route.query': async function (newVal, oldVal) {
-      console.log(newVal, oldVal)
-      if (newVal.id === 'new_friend') {
-        await this.getNewFriendList()
+    '$route.query': async function (newVal) {
+      if (newVal.id) {
+        if (newVal.id === 'new_friend') {
+          await this.getNewFriendList()
+        } else {
+          this.editNicknameMode = false
+          const res = await reqUserInfo(this.$store.state.User._id, newVal.id)
+          if (res) {
+            if (res.code === 0) {
+              this.currentUserInfo = res.data
+              this.currentUserInfo.friend_name = res.friend.friend_name
+            } else {
+              this.$message.error(res.msg)
+            }
+          }
+        }
       }
     }
   },
@@ -154,7 +211,7 @@ export default {
     },
     async handleCommand (info) {
       if (info.command === 'ignore') {
-        await this.$confirm('您确定要退出登录吗？').then(async () => {
+        await this.$confirm('您确定要忽略吗？').then(async () => {
           const res = await reqIgnoreRequest(info.id)
           if (res) {
             if (res.code === 0) {
@@ -168,6 +225,40 @@ export default {
         }).catch(() => {
           this.$message.info('已取消')
         })
+      }
+    },
+    async handleFriendCommand (command) {
+      if (command === 'changeName') {
+        this.nickname = this.currentUserInfo.friend_name
+        this.editNicknameMode = true
+      } else if (command === 'delete') {
+        await this.$confirm('您确定要删除该好友吗？').then(async () => {
+          const res = await reqDeleteFriend(this.$store.state.User._id, this.currentUserInfo._id)
+          if (res) {
+            if (res.code === 0) {
+              this.$router.replace({ path: '/chat/friend' })
+              this.$message.success('已成功删除好友!')
+              this.$bus.$emit('getFriendList')
+            } else {
+              this.$message.error(res.msg)
+            }
+          }
+        }).catch(() => {
+          this.$message.info('已取消')
+        })
+      }
+    },
+    async handleConfirmChangeName () {
+      const res = await reqChangeNickname(this.$store.state.User._id, this.currentUserInfo._id, this.nickname)
+      if (res) {
+        this.editNicknameMode = false
+        if (res.code === 0) {
+          this.currentUserInfo.friend_name = this.nickname
+          this.$message.success('修改好友备注成功！')
+          this.$bus.$emit('getFriendList')
+        } else {
+          this.$message.error(res.msg)
+        }
       }
     },
 
@@ -251,5 +342,36 @@ export default {
     left: 50%;
     transform: translate(-50%, -50%);
   }
+}
+
+.user-info-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  .user-info {
+    -webkit-app-region: no-drag;
+    position: absolute;
+    width: 400px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .user-info-detail {
+    margin: 10px 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    .user-info-detail-title {
+      display: inline-block;
+      font-size: 14px;
+      width: 120px;
+      text-align: center;
+      color: #777;
+    }
+  }
+}
+
+.el-dropdown-menu {
+  -webkit-app-region: no-drag;
 }
 </style>

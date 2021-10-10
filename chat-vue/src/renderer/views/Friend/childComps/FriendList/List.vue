@@ -1,5 +1,5 @@
 <template>
-  <div style="-webkit-app-region: no-drag">
+  <div class="container">
     <el-collapse v-model="activeNames">
       <el-collapse-item
         v-for="item in Object.keys(friendList)"
@@ -65,6 +65,9 @@ export default {
     }
   },
   mounted () {
+    if (this.$route.query && this.$route.query.id) {
+      this.activeId = this.$route.query.id
+    }
     this.getSingleFriendList()
     this.$bus.$on('getFriendList', this.getSingleFriendList)
   },
@@ -92,6 +95,23 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.container {
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+  -webkit-app-region: no-drag;
+}
+
+.container::-webkit-scrollbar {
+	width: 10px;
+	height: 16px;
+	background-color: #F5F5F5;
+}
+
+.container::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #DDD;
+}
+
 .friend-item {
   display: flex;
   align-items: center;

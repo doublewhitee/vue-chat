@@ -1,9 +1,10 @@
 import { request } from './request.js'
 
-export function reqFriendList (_id) {
+export function reqFriendList (_id, searchText = '') {
   return request({
     url: '/friend/friendlist',
-    params: { _id }
+    method: 'post',
+    data: { _id, searchText }
   })
 }
 
@@ -43,5 +44,21 @@ export function reqNewFriendList (userId) {
     url: '/friend/newfriends',
     method: 'post',
     data: { user_id: userId }
+  })
+}
+
+export function reqChangeNickname (userId, friendId, friendName) {
+  return request({
+    url: '/friend/changename',
+    method: 'post',
+    data: { user_id: userId, friend_id: friendId, friend_name: friendName }
+  })
+}
+
+export function reqDeleteFriend (userId, friendId) {
+  return request({
+    url: '/friend/delete',
+    method: 'post',
+    data: { user_id: userId, friend_id: friendId }
   })
 }

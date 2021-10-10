@@ -11,7 +11,7 @@ const router = express.Router()
   query:
   _id: [required, String], 当前用户_id
 */
-router.get('/friendlist', friend_controller.getFriendList)
+router.post('/friendlist', friend_controller.getFriendList)
 
 // 添加好友
 /*
@@ -54,5 +54,22 @@ router.post('/addreq', friend_controller.sendRequest)
   user_id: [required, String], 用户_id
 */
 router.post('/newfriends', friend_controller.friendRequest)
+
+// 修改备注名
+/*
+  body:
+  user_id: [required, String], 当前用户_id
+  friend_id: [required, String], 好友_id
+  friend_name: [required, String], 好友备注名
+*/
+router.post('/changename', friend_controller.changeNickname)
+
+// 删除好友
+/*
+  body:
+  user_id: [required, String], 当前用户_id
+  friend_id: [required, String], 好友_id
+*/
+router.post('/delete', friend_controller.deleteFriend)
 
 export default router
