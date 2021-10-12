@@ -15,18 +15,39 @@ export function setSocket(app) {
     socket.on('login', async data => {
       // 存储上线用户
       onlineUsers[data._id] = socket.id
-      // todo 获取所有聊天的未读消息个数
+      // 获取所有聊天的未读消息个数并按时间排序
       const messageNum = {}
+
+      const unreadMessages = await ChatModel.aggregate([
+        { $match: {
+          'unread_list': { $in: [ mongoose.Types.ObjectId(data._id) ]}
+        }},
+        { $lookup: { from: 'groups', localField: 'group', foreignField: '_id', as: 'group_info' } },
+        { $unwind: '$group_info' },
+        { $match: {
+          'group_info.type': { $ne: 'new' }
+        }},
+        { $group: {
+          _id: '$group_info._id',
+          count: { $sum: 1 },
+        }}
+      ])
+      
+      unreadMessages.forEach(i => {
+        messageNum[i._id] = i.count
+      })
 
       // 获取新好友申请信息数
       const newFriendGroupIds = await ChatModel.aggregate([
+        { $match: {
+          'user': { $ne: mongoose.Types.ObjectId(data._id) },
+          'unread_list': { $in: [ mongoose.Types.ObjectId(data._id) ]}
+        }},
         { $lookup: { from: 'groups', localField: 'group', foreignField: '_id', as: 'group_info' } },
         { $unwind: '$group_info' },
         { $match: {
           'group_info.type': 'new',
-          'group_info.user_list': { $in: [ mongoose.Types.ObjectId(data._id) ]},
-          'user': { $ne: mongoose.Types.ObjectId(data._id) },
-          'unread_list': { $not: { $in: [ mongoose.Types.ObjectId(data._id) ] } }
+          'group_info.user_list': { $in: [ mongoose.Types.ObjectId(data._id) ]}
         }},
         { $group: { _id: '$group_info._id' } }
       ])

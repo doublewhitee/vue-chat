@@ -31,7 +31,7 @@ class friend_controller {
       const { user_id, friend_id, friend_name, group_id } = req.body
       await FriendModel.create({ user_id, friend_id, friend_name })
       await FriendModel.create({ user_id: friend_id, friend_id: user_id })
-      await GroupModel.findByIdAndUpdate(group_id, { type: 'single' })
+      await GroupModel.findByIdAndUpdate(group_id, { type: 'single', update_at: new Date() })
       res.send({ code: 0, data: 'success' })
     } catch (error) {
       res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
@@ -98,13 +98,13 @@ class friend_controller {
         // 新建group[new]，好友申请作为一条chat
         const group = await GroupModel.create({ type: 'new', user_list: [user_id, friend_id] })
         const group_id = group._id
-        await ChatModel.create({ user: user_id, group: group_id, content: addText })
+        await ChatModel.create({ user: user_id, group: group_id, content: addText, unread_list: [ friend_id ] })
       } else {
         const group_id = isGroup._id
         await ChatModel.create({ user: user_id, group: group_id, content: addText, unread_list: [ friend_id ] })
         await GroupModel.findByIdAndUpdate(group_id, { update_at: new Date() })
       }
-      res.send({ code: 0, data: 'success' })
+      res.send({ code: 0, data: isGroup })
     } catch (error) {
       res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
     }

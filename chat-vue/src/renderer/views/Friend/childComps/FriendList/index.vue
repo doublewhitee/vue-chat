@@ -155,7 +155,9 @@ export default {
       if (res) {
         if (res.code === 0) {
           this.detailDialogVisible = false
-          this.$socket.emit('add_friend', { friend_id: this.detailInfo._id })
+          if (!res.data) {
+            this.$socket.emit('add_friend', { friend_id: this.detailInfo._id })
+          }
           this.$message.success('已成功发送好友请求')
         } else {
           this.$message.error(res.msg)

@@ -155,24 +155,15 @@ export default {
       BASE_IMG_URL
     }
   },
+  mounted () {
+    this.$bus.$on('refreshFriend', this.refreshFriend)
+  },
+  destroyed () {
+    this.$bus.$off('refreshFriend')
+  },
   watch: {
     '$route.query': async function (newVal) {
-      if (newVal.id) {
-        if (newVal.id === 'new_friend') {
-          await this.getNewFriendList()
-        } else {
-          this.editNicknameMode = false
-          const res = await reqUserInfo(this.$store.state.User._id, newVal.id)
-          if (res) {
-            if (res.code === 0) {
-              this.currentUserInfo = res.data
-              this.currentUserInfo.friend_name = res.friend.friend_name
-            } else {
-              this.$message.error(res.msg)
-            }
-          }
-        }
-      }
+      await this.refreshFriend(newVal.id)
     }
   },
   methods: {
@@ -269,6 +260,24 @@ export default {
           this.newFriendList = res.data
         } else {
           this.$message.error(res.msg)
+        }
+      }
+    },
+    async refreshFriend (id) {
+      if (id) {
+        if (id === 'new_friend') {
+          await this.getNewFriendList()
+        } else {
+          this.editNicknameMode = false
+          const res = await reqUserInfo(this.$store.state.User._id, id)
+          if (res) {
+            if (res.code === 0) {
+              this.currentUserInfo = res.data
+              this.currentUserInfo.friend_name = res.friend.friend_name
+            } else {
+              this.$message.error(res.msg)
+            }
+          }
         }
       }
     }

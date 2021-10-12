@@ -53,7 +53,7 @@ export default {
     this.$bus.$on('getFriendList', this.getFriendList)
   },
   destroyed () {
-    this.$bus.$off('searchFriend')
+    this.$bus.$off('getFriendList')
   },
   methods: {
     async getFriendList () {
@@ -68,7 +68,11 @@ export default {
     },
     handleClickFriend (id) {
       this.activeId = id
-      this.$router.replace({ path: '/chat/friend', query: { id } })
+      if (this.$route.query && this.$route.query.id && this.$route.query.id === id) {
+        this.$bus.$emit('refreshFriend')
+      } else {
+        this.$router.replace({ path: '/chat/friend', query: { id } })
+      }
     },
     highlightText
   }

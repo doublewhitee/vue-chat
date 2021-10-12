@@ -15,12 +15,19 @@ const mutations = {
     state.username = payload.username
     state.phone = payload.phone
     state.avatar = payload.avatar
+    state.newFriendReqCount = 0
   },
   SET_USER_AVATAR (state, avatar) {
     state.avatar = avatar
   },
   CLEAR_USER_STATE (state) {
-    Object.keys(state).forEach(k => { state[k] = '' })
+    Object.keys(state).forEach(k => {
+      if (k === 'messageCount') {
+        state[k] = {}
+      } else {
+        state[k] = ''
+      }
+    })
   },
   SET_MESSAGE_COUNT (state, payload) {
     state.messageCount = payload
