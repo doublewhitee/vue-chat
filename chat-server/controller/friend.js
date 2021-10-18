@@ -185,6 +185,24 @@ class friend_controller {
       res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
     }
   }
+
+  // 根据好友id获取group信息[single]
+  async getGroupId (req, res, next) {
+    try {
+      const { user_id, friend_id } = req.body
+      const group = await GroupModel.findOne({
+        $and: [
+          { user_list: { $elemMatch: { $eq: user_id }} },
+          { user_list: { $elemMatch: { $eq: friend_id }} }
+        ],
+        user_list: { $size: 2 },
+        type: 'single'
+      })
+      res.send({ code: 0, data: group._id })
+    } catch (error) {
+      res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
+    }
+  }
 }
 
 export default new friend_controller()

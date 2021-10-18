@@ -8,7 +8,7 @@ const router = express.Router()
 
 // 获取好友列表
 /*
-  query:
+  body:
   _id: [required, String], 当前用户_id
 */
 router.post('/friendlist', friend_controller.getFriendList)
@@ -71,5 +71,13 @@ router.post('/changename', friend_controller.changeNickname)
   friend_id: [required, String], 好友_id
 */
 router.post('/delete', friend_controller.deleteFriend)
+
+// 根据好友id获取group信息[single]
+/*
+  body:
+  user_id: [required, String], 当前用户_id
+  friend_id: [required, String], 好友_id
+*/
+router.post('/groupid', friend_controller.getGroupId)
 
 export default router

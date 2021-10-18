@@ -4,6 +4,7 @@ import GroupModel from '../models/group.js'
 import ChatModel from '../models/chat.js'
 
 const onlineUsers = {}
+const roomInfo = {}
 
 export function setSocket(app) {
   const io = new socketIo.Server(app,{ allowEIO3: true, cors: { origin: true, credentials: true } })
@@ -55,6 +56,67 @@ export function setSocket(app) {
 
       // 通知未读消息数汇总
       socket.emit('count', messageNum)
+    })
+
+    // 进入房间[group]
+    socket.on('join_room', async data => {
+      socket.join(data.group_id)
+      console.log('join room', data.group_id)
+      if (!roomInfo[data.group_id]) {
+        roomInfo[data.group_id] = []
+      }
+      if (!roomInfo[data.group_id].some(i => i === data.user_id)) {
+        roomInfo[data.group_id].push(data.user_id)
+      }
+      await ChatModel.updateMany({ group: data.group_id }, { $pull: { unread_list: data.user_id } })
+    })
+
+    // 离开房间
+    socket.on('leave_room', data => {
+      socket.leave(data.group_id)
+      console.log('leave room', data.group_id)
+      roomInfo[data.group_id].some((i, index) => {
+        if (i === data.user_id) {
+          roomInfo[data.group_id].splice(index, 1)
+          return true
+        }
+      })
+    })
+
+    // 发送消息
+    socket.on('send_msg', async data => {
+      try {
+        // 根据在房间内人数更新消息未读列表
+        const group = await GroupModel.findById(data.group_id)
+        const user_list = group.user_list
+        const unread_list = []
+        if (!roomInfo[data.group_id]) {
+          roomInfo[data.group_id] = []
+        }
+        user_list.forEach(i => {
+          if (i.toString() !== data.user_id && roomInfo[data.group_id].indexOf(i.toString()) === -1) {
+            unread_list.push(i)
+          }
+        })
+        await ChatModel.findByIdAndUpdate(data.chat_id, { unread_list })
+        const chat = await ChatModel.findById(data.chat_id).populate('user', 'username avatar')
+        // 若对方在线且在该房间内
+        socket.broadcast.to(data.group_id).emit('receive_msg', chat)
+        // 若对方在线且不在房间内
+        const send_list = []
+        unread_list.forEach(i => {
+          if (Object.keys(onlineUsers).indexOf(i.toString()) !== -1) {
+            send_list.push(onlineUsers[i])
+          }
+        })
+        if (send_list.length > 0) {
+          send_list.forEach(k => {
+            socket.to(k).emit('count_change', { id: data.group_id, count: 1 })
+          })
+        }
+      } catch (error) {
+        console.log(error)
+      }
     })
 
     // 退出登录
