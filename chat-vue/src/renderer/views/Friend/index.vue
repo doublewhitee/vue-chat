@@ -67,7 +67,7 @@
               </div>
             </div>
             <div style="text-align: center; margin-top: 50px">
-              <el-button type="primary" style="margin-right: 10px">聊天</el-button>
+              <el-button type="primary" @click="handleChatTo" style="margin-right: 10px">聊天</el-button>
               <el-dropdown trigger="click" @command="handleFriendCommand">
                 <el-button>更多<i class="el-icon-arrow-down el-icon--right" /></el-button>
                 <el-dropdown-menu slot="dropdown">
@@ -133,7 +133,7 @@
 import FriendList from './childComps/FriendList'
 import Header from '@/components/Header'
 
-import { reqAcceptFriend, reqNewFriendList, reqIgnoreRequest, reqChangeNickname, reqDeleteFriend } from '@/api/friend'
+import { reqAcceptFriend, reqNewFriendList, reqIgnoreRequest, reqChangeNickname, reqDeleteFriend, reqGroupId } from '@/api/friend'
 import { reqUserInfo } from '@/api/user'
 import { BASE_IMG_URL } from '@/config/constant'
 
@@ -247,6 +247,16 @@ export default {
           this.currentUserInfo.friend_name = this.nickname
           this.$message.success('修改好友备注成功！')
           this.$bus.$emit('getFriendList')
+        } else {
+          this.$message.error(res.msg)
+        }
+      }
+    },
+    async handleChatTo () {
+      const res = await reqGroupId(this.$store.state.User._id, this.currentUserInfo._id)
+      if (res) {
+        if (res.code === 0) {
+          this.$router.replace({ path: '/chat/group', query: { id: res.data } })
         } else {
           this.$message.error(res.msg)
         }

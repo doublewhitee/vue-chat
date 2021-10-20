@@ -62,3 +62,11 @@ export function reqDeleteFriend (userId, friendId) {
     data: { user_id: userId, friend_id: friendId }
   })
 }
+
+export function reqGroupId (userId, friendId) {
+  return request({
+    url: '/friend/groupid',
+    method: 'post',
+    data: { user_id: userId, friend_id: friendId }
+  })
+}

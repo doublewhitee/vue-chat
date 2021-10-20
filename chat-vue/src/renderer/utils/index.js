@@ -29,6 +29,21 @@ export function debounce (fn, delay) {
   }
 }
 
+// 节流
+export function throttle (fn, delay) {
+  let valid = true
+  return function () {
+    if (!valid) {
+      return false
+    }
+    valid = false
+    setTimeout(() => {
+      fn.apply(this)
+      valid = true
+    }, delay)
+  }
+}
+
 // 高亮显示的数据过滤
 export function highlightText (keyword, text) {
   let html = '<div>' + text + '</div>'

@@ -34,6 +34,9 @@ const mutations = {
   },
   CHANGE_MESSAGE_COUNT (state, payload) {
     state.messageCount[payload.id] = state.messageCount[payload.id] + payload.count
+  },
+  CLEAR_MESSAGE_COUNT (state, payload) {
+    state.messageCount[payload] = 0
   }
 }
 
