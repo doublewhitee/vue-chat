@@ -30,3 +30,19 @@ export function reqSendMsg (groupId, userId, content) {
     data: { group_id: groupId, user_id: userId, content }
   })
 }
+
+export function reqChatHistory (groupId, searchText, page) {
+  return request({
+    url: '/group/history',
+    method: 'post',
+    data: { group_id: groupId, searchText, page }
+  })
+}
+
+export function reqChatHistoryCount (userId, searchText) {
+  return request({
+    url: '/group/historycount',
+    method: 'post',
+    data: { user_id: userId, searchText }
+  })
+}

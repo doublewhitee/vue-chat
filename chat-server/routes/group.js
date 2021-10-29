@@ -37,4 +37,21 @@ router.post('/chat', group_controller.getChatList)
 */
 router.post('/send', group_controller.sendChat)
 
+// 搜索聊天记录
+/*
+  body:
+  group_id: [required, String], 当前group的_id
+  searchText: [required, String], 搜索内容
+  page: [required, Number], 页码
+*/
+router.post('/history', group_controller.findHistory)
+
+// 搜索聊天记录数量
+/*
+  body:
+  user_id: [required, String], 当前user的_id
+  searchText: [required, String], 搜索内容
+*/
+router.post('/historycount', group_controller.findHistoryCount)
+
 export default router

@@ -21,7 +21,7 @@ export default {
       this.$store.commit('CLEAR_USER_STATE')
       this.$router.replace('/login')
       ipcRenderer.send('LOG_OUT')
-      this.$message.success('断开连接，您已退出登录！')
+      this.$message.success('您已断开连接，自动退出登录！')
     }
   }
 }

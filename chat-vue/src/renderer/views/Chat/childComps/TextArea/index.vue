@@ -12,7 +12,7 @@
         </span>
         <i slot="reference" class="el-icon-s-opportunity" />
       </el-popover>
-      <i class="el-icon-chat-dot-round" />
+      <i class="el-icon-chat-dot-round" @click="handleOpenHistory" />
     </div>
     <el-input
       type="textarea"
@@ -70,6 +70,9 @@ export default {
           this.$message.error(res.msg)
         }
       }
+    },
+    handleOpenHistory () {
+      this.$emit('openHistory')
     }
   }
 }

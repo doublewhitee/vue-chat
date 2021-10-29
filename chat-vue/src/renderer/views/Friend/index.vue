@@ -256,7 +256,7 @@ export default {
       const res = await reqGroupId(this.$store.state.User._id, this.currentUserInfo._id)
       if (res) {
         if (res.code === 0) {
-          this.$router.replace({ path: '/chat/group', query: { id: res.data } })
+          this.$router.replace({ path: '/chat/group', query: { id: res.data, title: this.currentUserInfo.friend_name || this.currentUserInfo.username } })
         } else {
           this.$message.error(res.msg)
         }

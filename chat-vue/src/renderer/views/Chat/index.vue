@@ -12,13 +12,52 @@
             @loadChatList="getChatData($route.query.id)"
           />
         </div>
-        <TextArea @sendMsg="handleSendMsg" />
+        <TextArea @sendMsg="handleSendMsg" @openHistory="handleHistory" />
       </div>
 
       <div v-else class="content">
         <img src="@/assets/icon.png" alt="icon" class="icon-img">
       </div>
     </div>
+
+    <el-dialog
+      title="历史记录"
+      :visible.sync="dialogVisible"
+      width="60%"
+    >
+      <el-input v-model="searchInput" @input="handleInputChange" placeholder="请输入要查询的聊天记录内容">
+        <i slot="prefix" class="el-input__icon el-icon-search" />
+      </el-input>
+
+      <el-divider />
+
+      <div v-if="historyMsg !== ''" class="history-msg">
+        {{ historyMsg }}
+      </div>
+
+      <div v-else>
+        <div v-for="item in historyList" :key="item._id" class="history-item">
+          <img
+            :src="BASE_IMG_URL + item.user.avatar"
+            alt="avatar"
+          />
+          <div>
+            <div class="history-name">{{ item.user.username }}</div>
+            <div>{{ getTimeInfo(item.create_at) }}</div>
+            <div v-html="highlightText(searchInput, item.content)" class="highlight-container" />
+          </div>
+        </div>
+        <el-pagination
+          small
+          style="text-align: center"
+          layout="prev, pager, next"
+          :total="historyTotal"
+          :page-size="3"
+          :current-page="currentPage"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -28,7 +67,12 @@ import ChatBox from './childComps/ChatBox'
 import TextArea from './childComps/TextArea'
 import Header from '@/components/Header'
 
-import { reqGroupDetail, reqChatList } from '@/api/group'
+import { reqGroupDetail, reqChatList, reqChatHistory } from '@/api/group'
+import { debounce, highlightText } from '@/utils'
+import { getTimeInfo } from '@/utils/time'
+import { BASE_IMG_URL } from '@/config/constant'
+
+const historyPrompt = '请输入想要查找的聊天记录'
 
 export default {
   components: {
@@ -38,6 +82,7 @@ export default {
     Header
   },
   async mounted () {
+    this.historyMsg = historyPrompt
     if (this.$route.query && this.$route.query.id) {
       this.chatInfo = []
       this.isChatLoaded[this.$route.query.id] = false
@@ -55,7 +100,21 @@ export default {
       groupType: '',
       chatInfo: [],
       isChatLoaded: {},
-      currentChatArray: null
+      currentChatArray: null,
+      historyList: [],
+      dialogVisible: false,
+      searchInput: '',
+      historyMsg: '',
+      currentPage: 1,
+      historyTotal: 0,
+      BASE_IMG_URL
+    }
+  },
+  computed: {
+    getTimeInfo: function () {
+      return time => {
+        return getTimeInfo(time, 'detail')
+      }
     }
   },
   watch: {
@@ -132,7 +191,41 @@ export default {
       this.$bus.$emit('updateChatList', { group: msg.group, time: msg.create_at })
       // 聊天框自动定位到底部
       this.$bus.$emit('scrollToBottom')
-    }
+    },
+    handleHistory () {
+      this.dialogVisible = true
+      this.searchInput = ''
+      this.historyTotal = 0
+      this.historyList = []
+      this.historyMsg = historyPrompt
+    },
+    handleInputChange:
+      debounce(async function () {
+        this.currentPage = 1
+        if (this.searchInput === '') {
+          this.historyMsg = historyPrompt
+        } else {
+          this.searchChatHistory()
+        }
+      }, 500),
+    async searchChatHistory () {
+      this.historyMsg = '加载中...'
+      const res = await reqChatHistory(this.$route.query.id, this.searchInput, this.currentPage)
+      if (res) {
+        if (res.code === 0) {
+          this.historyMsg = ''
+          this.historyTotal = res.total
+          this.historyList = res.data
+        } else {
+          this.historyMsg = res.msg
+        }
+      }
+    },
+    handleCurrentChange (page) {
+      this.currentPage = page
+      this.searchChatHistory()
+    },
+    highlightText
   }
 }
 </script>
@@ -152,6 +245,42 @@ export default {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+  }
+}
+
+.history-msg {
+  text-align: center;
+  margin-left: 10px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  img {
+    width: 50px;
+    height: 50px;
+    margin: 10px;
+  }
+  div {
+    font-size: 12px;
+    color: #909399;
+  }
+  .history-name {
+    font-size: 14px;
+    font-weight: bold;
+    padding-bottom: 5px;
+    color: #606266;
+  }
+}
+
+.highlight-container {
+  margin-top: 5px;
+  /deep/ div {
+    font-size: 12px;
+    color: #909399;
+  }
+  /deep/ span {
+    color: #409EFF;
   }
 }
 </style>
