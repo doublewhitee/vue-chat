@@ -180,7 +180,7 @@ class friend_controller {
       const group_id = group._id
       await GroupModel.findByIdAndDelete(group_id)
       await ChatModel.deleteMany({ group: group_id })
-      res.send({ code: 0, msg: '删除好友及相关信息成功！' })
+      res.send({ code: 0, data: group })
     } catch (error) {
       res.send({ code: 1, msg: '请求错误, 请重新尝试！' })
     }

@@ -29,7 +29,7 @@ class group_controller {
   async getGroupDetail(req, res, next) {
     try {
       const { _id } = req.query
-      const group = await GroupModel.findById(_id)
+      const group = await GroupModel.findById(_id).populate('group_admin', 'username avatar').populate('user_list', 'username avatar')
       if (group) {
         res.send({ code: 0, data: group })
       } else {
@@ -115,6 +115,106 @@ class group_controller {
       res.send({ code: 0, data: history })
     } catch (error) {
       res.send({ code: 1, msg: '查询聊天记录失败, 请重新尝试！' })
+    }
+  }
+
+  // 新建群聊
+  async createGroup(req, res, next) {
+    try {
+      const { user_list, admin } = req.body
+      const query = { $and: [] }
+      user_list.forEach(i => {
+        query.$and.push({ user_list: { $elemMatch: { $eq: i }} })
+      })
+      const isExist = await GroupModel.findOne({ type: 'group', ...query, user_list: { $size: user_list.length } })
+      if (!isExist) {
+        const group = await GroupModel.create({ type: 'group', user_list: user_list, group_admin: admin, group_name: '新建群聊' })
+        const group_id = group._id
+        const chat = await ChatModel.create({ user: admin, group: group_id, content: '我新建了群聊，快来聊天吧！', unread_list: user_list })
+        res.send({ code: 0, chat: chat._id, group: group })
+      } else {
+        res.send({ code: 1, msg: '该群聊已存在！' })
+      }
+    } catch (error) {
+      res.send({ code: 2, msg: '新建群聊失败, 请重新尝试！' })
+    }
+  }
+
+  // 查找当前用户所有群聊
+  async getGroupChatList(req, res, next) {
+    try {
+      const { user_id } = req.body
+      const groups = await GroupModel.find({
+        user_list: { $elemMatch: { $eq: user_id }},
+        type: 'group'
+      })
+      res.send({ code: 0, data: groups })
+    } catch (error) {
+      res.send({ code: 1, msg: '查找群聊信息失败, 请重新尝试！' })
+    }
+  }
+
+  // 添加/踢出群成员
+  async editGroupMember(req, res, next) {
+    try {
+      const { group_id, mode, ids } = req.body
+      let group = null
+      if (mode === 'add') {
+        group = await GroupModel.findByIdAndUpdate(group_id, { $push: { user_list: { $each: ids } } }, { new: true })
+      } else {
+        group = await GroupModel.findByIdAndUpdate(group_id, { $pull: { user_list: { $in: ids } } })
+      }
+      res.send({ code: 0, data: group })
+    } catch (error) {
+      res.send({ code: 1, msg: '更新群成员失败, 请重新尝试！' })
+    }
+  }
+
+  // 更新群信息
+  async updateGroupInfo (req, res, next) {
+    try {
+      const { group_id, key, value } = req.body
+      const group = await GroupModel.findByIdAndUpdate(group_id, { [key]: value })
+      res.send({ code: 0, data: group })
+    } catch (error) {
+      res.send({ code: 1, msg: '更新群信息失败, 请重新尝试！' })
+    }
+  }
+
+  // 退出群聊
+  async exitGroupChat (req, res, next) {
+    try {
+      const { user_id, group_id } = req.body
+      const group = await GroupModel.findById(group_id)
+      let info
+      // 如果是管理员则让列表中第一位不是管理员的转为管理员
+      if (group.group_admin.toString() === user_id) {
+        let new_admin
+        group.user_list.some(i => {
+          if (i !== user_id) {
+            new_admin = i
+            return true
+          }
+        })
+        info = await GroupModel.findByIdAndUpdate(group_id, { group_admin: new_admin, $pull: { user_list: user_id } })
+      } else {
+        info = await GroupModel.findByIdAndUpdate(group_id, { $pull: { user_list: user_id } })
+      }
+      res.send({ code: 0, data: info })
+    } catch (error) {
+      res.send({ code: 1, msg: '退出群聊失败, 请重新尝试！' })
+    }
+  }
+
+  // 解散群聊
+  async deleteGroupChat (req, res, next) {
+    try {
+      const { group_id } = req.body
+      await ChatModel.deleteMany({ group: group_id })
+      await GroupModel.findByIdAndDelete(group_id)
+      res.send({ code: 0, data: 'success' })
+    } catch (error) {
+      res.send({ code: 1, msg: '解散群聊失败, 请重新尝试！' })
     }
   }
 }

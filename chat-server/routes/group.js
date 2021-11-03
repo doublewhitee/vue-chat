@@ -54,4 +54,52 @@ router.post('/history', group_controller.findHistory)
 */
 router.post('/historycount', group_controller.findHistoryCount)
 
+// 新建群聊
+/*
+  body:
+  user_list: [required, Array], 参与群聊成员_id列表
+  admin: [required, String], 当前用户id，群管理员
+*/
+router.post('/create', group_controller.createGroup)
+
+// 查找当前用户所有群聊
+/*
+  body:
+  user_id: [required, String], 当前user的_id
+*/
+router.post('/info', group_controller.getGroupChatList)
+
+// 添加/踢出群成员
+/*
+  body:
+  group_id: [required, String], 当前group的_id
+  mode: [required, String] add/drop
+  ids: [required, Array] 添加/踢出的用户id列表
+*/
+router.post('/updatemeber', group_controller.editGroupMember)
+
+// 更新群信息
+/*
+  body:
+  group_id: [required, String], 当前group的_id
+  key: [required, String] 键
+  value: [required, String] 值
+*/
+router.post('/update', group_controller.updateGroupInfo)
+
+// 退出群聊
+/*
+  body:
+  group_id: [required, String], 当前group的_id
+  user_id: [required, String], 当前user的_id
+*/
+router.post('/exit', group_controller.exitGroupChat)
+
+// 解散群聊
+/*
+  body:
+  group_id: [required, String], 当前group的_id
+*/
+router.post('/delete', group_controller.deleteGroupChat)
+
 export default router

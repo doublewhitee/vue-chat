@@ -111,11 +111,32 @@ export function setSocket(app) {
         })
         if (send_list.length > 0) {
           send_list.forEach(k => {
-            socket.to(k).emit('count_change', { id: data.group_id, count: 1 })
+            socket.to(k).emit('count_change', { id: data.group_id, count: 1, create_at: chat.create_at })
           })
         }
       } catch (error) {
         console.log(error)
+      }
+    })
+
+    // 更新群基本信息
+    socket.on('update_group', data => {
+      const { group_id, user_ids, type } = data
+      if (type === 'delete') {
+        socket.broadcast.to(group_id).emit('delete_current_group')
+      } else {
+        socket.broadcast.to(group_id).emit('update_current_group_info')
+      }
+      const send_list = []
+      Object.keys(onlineUsers).forEach(i => {
+        if (user_ids.indexOf(i) !== -1) {
+          send_list.push(i)
+        }
+      })
+      if (send_list.length > 0) {
+        send_list.forEach(k => {
+          socket.to(onlineUsers[k]).emit('refresh_group_list')
+        })
       }
     })
 
@@ -133,11 +154,6 @@ export function setSocket(app) {
       }
     })
 
-    // 发送聊天信息
-    socket.on('send_chat', async data => {
-      console.log('chat!', data)
-    })
-
     socket.on('disconnect', () => {
       // 删除断开连接用户
       Object.keys(onlineUsers).forEach(i => {
@@ -145,6 +161,7 @@ export function setSocket(app) {
           delete onlineUsers[i]
         }
       })
+      socket.disconnect(0)
     })
   })
 }
