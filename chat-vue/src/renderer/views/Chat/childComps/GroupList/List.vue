@@ -29,6 +29,31 @@
         </div>
         <div class="group-item-time">{{ getTimeInfo(group.update_at) }}</div>
       </div>
+
+      <div v-else class="group-item-con">
+        <div style="display: flex; align-items: center">
+          <el-badge
+            v-if="$store.state.User.messageCount[group._id] && $store.state.User.messageCount[group._id] > 0"
+            :value="getBadgeNum(group._id)"
+            style="margin: 10px"
+          >
+            <img
+              :src="BASE_IMG_URL + group.group_img"
+              alt="avatar"
+              style="width: 45px; height: 45px"
+            />
+          </el-badge>
+          <img
+            v-else
+            class="group-item-img"
+            :src="BASE_IMG_URL + group.group_img"
+            alt="avatar"
+            style="width: 45px; height: 45px"
+          />
+          <div class="group-item-title">{{ group.group_name }}</div>
+        </div>
+        <div class="group-item-time">{{ getTimeInfo(group.update_at) }}</div>
+      </div>
     </div>
   </div>
 </template>
@@ -42,6 +67,11 @@ import { reqFriendList } from '@/api/friend'
 import { getTimeInfo } from '@/utils/time'
 
 export default {
+  sockets: {
+    async refresh_group_list () {
+      await this.getGroupInfo()
+    }
+  },
   data () {
     return {
       groupInfo: [],
@@ -72,6 +102,7 @@ export default {
   },
   async mounted () {
     this.$bus.$on('updateChatList', this.updateChatList)
+    this.$bus.$on('refreshChatList', this.getGroupInfo)
     await this.getGroupInfo()
     if (this.$route.query && this.$route.query.id) {
       this.activeId = this.$route.query.id
@@ -80,6 +111,7 @@ export default {
   },
   destroyed () {
     this.$bus.$off('updateChatList')
+    this.$bus.$off('refreshChatList')
   },
   methods: {
     handleClickGroup (id, info) {
@@ -128,9 +160,9 @@ export default {
         }
       }
     },
-    updateChatList (info) {
+    async updateChatList (info) {
       const { time, group } = info
-      this.groupInfo.some((i, index) => {
+      const isExist = this.groupInfo.some((i, index) => {
         if (i._id === group) {
           if (index === 0) {
             this.groupInfo[index].update_at = time
@@ -139,8 +171,12 @@ export default {
             temp[0].update_at = time
             this.groupInfo.unshift(temp[0])
           }
+          return true
         }
       })
+      if (!isExist) {
+        await this.getGroupInfo()
+      }
       this.$forceUpdate()
     }
   }

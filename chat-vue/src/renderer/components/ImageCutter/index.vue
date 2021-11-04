@@ -6,7 +6,7 @@
       :show-file-list="false"
       :auto-upload="false"
       :on-change="changeUpload">
-      <img :src="BASE_IMG_URL + $store.state.User.avatar" class="avatar-img">
+      <img :src="BASE_IMG_URL + imgUrl" class="avatar-img">
     </el-upload>
 
     <el-dialog
@@ -54,11 +54,17 @@
 import { BASE_IMG_URL } from '@/config/constant'
 import { getBase64 } from '@/utils'
 
+import { reqUploadAvatar } from '@/api/user'
+
 import { VueCropper } from 'vue-cropper'
 
 export default {
   components: {
     VueCropper
+  },
+  props: {
+    imgUrl: { type: String, default: '' },
+    mode: { type: String, default: 'user_avatar' }
   },
   data () {
     return {
@@ -100,13 +106,25 @@ export default {
       this.$refs.cropper.getCropBlob(async (data) => {
         const formData = new FormData()
         formData.append('file', data, 'AVATAR.jpg')
-        const res = await this.$store.dispatch('CHANGE_AVATAR', formData)
-        if (res) {
-          if (res.code === 0) {
-            this.dialogVisible = false
-            this.$message.success('上传图片成功！')
-          } else {
-            this.$message.error(res.msg)
+        if (this.mode === 'user_avatar') {
+          const res = await this.$store.dispatch('CHANGE_AVATAR', formData)
+          if (res) {
+            if (res.code === 0) {
+              this.dialogVisible = false
+              this.$message.success('上传图片成功！')
+            } else {
+              this.$message.error(res.msg)
+            }
+          }
+        } else {
+          const res = await reqUploadAvatar(formData)
+          if (res) {
+            if (res.code === 0) {
+              this.$emit('imgInfo', res.data)
+              this.dialogVisible = false
+            } else {
+              this.$message.error(res.msg)
+            }
           }
         }
       })

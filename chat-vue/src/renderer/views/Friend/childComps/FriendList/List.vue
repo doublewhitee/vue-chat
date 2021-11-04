@@ -9,9 +9,9 @@
       >
         <div v-for="friend in friendList[item]" :key="friend._id">
           <div
-            v-if="friend._id === 'new_friend'"
+            v-if="item === 'new'"
             :class="[activeId === 'new_friend' ? 'friend-item active' : 'friend-item']"
-            @click="handleClickFriend('new_friend')"
+            @click="handleClickFriend('new_friend', item)"
           >
             <div class="friend-item-img">
               <el-badge
@@ -31,8 +31,8 @@
           </div>
 
           <div
-            v-else
-            @click="handleClickFriend(friend.friend_id._id)"
+            v-else-if="item === 'friend'"
+            @click="handleClickFriend(friend.friend_id._id, item)"
             :class="[activeId === friend.friend_id._id ? 'friend-item active' : 'friend-item']"
           >
             <img
@@ -42,6 +42,20 @@
               style="width: 45px; height: 45px"
             />
             <div class="friend-item-title">{{ friend.friend_name || friend.friend_id.username }}</div>
+          </div>
+
+          <div
+            v-else
+            @click="handleClickFriend(friend._id, item)"
+            :class="[activeId === friend._id ? 'friend-item active' : 'friend-item']"
+          >
+            <img
+              class="friend-item-img"
+              :src="BASE_IMG_URL + friend.group_img"
+              alt="avatar"
+              style="width: 45px; height: 45px"
+            />
+            <div class="friend-item-title">{{ friend.group_name }}</div>
           </div>
         </div>
       </el-collapse-item>
@@ -53,6 +67,7 @@
 import { BASE_IMG_URL } from '@/config/constant'
 
 import { reqFriendList } from '@/api/friend'
+import { reqGroupChatList } from '@/api/group'
 
 export default {
   data () {
@@ -69,18 +84,19 @@ export default {
       this.activeId = this.$route.query.id
     }
     this.getSingleFriendList()
+    this.getGroupFriendList()
     this.$bus.$on('getFriendList', this.getSingleFriendList)
   },
   destroyed () {
     this.$bus.$off('getFriendList')
   },
   methods: {
-    handleClickFriend (id) {
+    handleClickFriend (id, type) {
       this.activeId = id
       if (this.$route.query && this.$route.query.id && this.$route.query.id === id) {
         this.$bus.$emit('refreshFriend')
       } else {
-        this.$router.replace({ path: '/chat/friend', query: { id } })
+        this.$router.replace({ path: '/chat/friend', query: { id, type } })
       }
     },
 
@@ -89,6 +105,16 @@ export default {
       if (res) {
         if (res.code === 0) {
           this.friendList.friend = res.data
+        } else {
+          this.$message.error(res.msg)
+        }
+      }
+    },
+    async getGroupFriendList () {
+      const res = await reqGroupChatList(this.$store.state.User._id)
+      if (res) {
+        if (res.code === 0) {
+          this.friendList.group = res.data
         } else {
           this.$message.error(res.msg)
         }

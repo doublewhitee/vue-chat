@@ -76,7 +76,6 @@ export default {
 
     async getGroupInfo () {
       const res = await reqChatHistoryCount(this.$store.state.User._id, this.searchText)
-      console.log(res)
       if (res) {
         if (res.code === 0) {
           this.groupInfo = res.data
@@ -106,7 +105,6 @@ export default {
             } else {
               this.$message.error(info.msg)
             }
-            console.log(this.groupInfo)
           }
         } else {
           this.$message.error(res.msg)

@@ -54,7 +54,7 @@
       width="40%">
       
       <div v-if="dialogTitle === '修改头像'" style="text-align: center;">
-        <ImgCutter />
+        <ImgCutter :imgUrl="$store.state.User.avatar" />
         <div style="font-size: 12px; padding-top: 10px;">点击修改头像</div>
       </div>
       <el-form v-else label-width="80px" :model="infoForm" :rules="rules" ref="infoForm">

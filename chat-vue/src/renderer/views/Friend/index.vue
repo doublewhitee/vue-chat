@@ -4,7 +4,7 @@
     
     <div style="width: 600px;">
       <div v-if="$route.query && $route.query.id" style="height: 100%">
-        <div v-if="$route.query.id === 'new_friend'">
+        <div v-if="$route.query.type === 'new'">
           <Header title="新的朋友" />
           <div v-if="newFriendList.length > 0">
             <div v-for="item in newFriendList" :key="item._id" class="new-friend-item">
@@ -36,7 +36,7 @@
           <div v-else class="prompt">还没有收到好友请求哦</div>
         </div>
 
-        <div v-else class="user-info-container">
+        <div v-else-if="$route.query.type === 'friend'" class="user-info-container">
           <div class="user-info">
             <div style="display: flex; align-items: center">
               <el-image
@@ -76,6 +76,19 @@
                 </el-dropdown-menu>
               </el-dropdown>
             </div>
+          </div>
+        </div>
+
+        <div v-else>
+          <Header :title="currentUserInfo && currentUserInfo.user_list ? `${currentUserInfo.group_name}(${currentUserInfo.user_list.length})` : ''" />
+          <div class="group-con" v-if="currentUserInfo && currentUserInfo.user_list">
+            <el-col v-for="item in currentUserInfo.user_list" :key="item._id" class="group-item" :span="4">
+              <img :src="BASE_IMG_URL + item.avatar" alt="avatar" class="group-avatar" />
+              <div class="group-username">{{ item.username.length > 5 ? item.username.slice(0,5) + '...' : item.username }}</div>
+            </el-col>
+          </div>
+          <div style="text-align: center; -webkit-app-region: no-drag;">
+            <el-button type="primary" @click="handleChatTo">发消息</el-button>
           </div>
         </div>
       </div>
@@ -135,6 +148,7 @@ import Header from '@/components/Header'
 
 import { reqAcceptFriend, reqNewFriendList, reqIgnoreRequest, reqChangeNickname, reqDeleteFriend, reqGroupId } from '@/api/friend'
 import { reqUserInfo } from '@/api/user'
+import { reqGroupDetail } from '@/api/group'
 import { BASE_IMG_URL } from '@/config/constant'
 
 export default {
@@ -163,7 +177,7 @@ export default {
   },
   watch: {
     '$route.query': async function (newVal) {
-      await this.refreshFriend(newVal.id)
+      await this.refreshFriend(newVal.id, newVal.type)
     }
   },
   methods: {
@@ -227,6 +241,7 @@ export default {
           const res = await reqDeleteFriend(this.$store.state.User._id, this.currentUserInfo._id)
           if (res) {
             if (res.code === 0) {
+              this.$socket.emit('update_group', { group_id: res.data._id, user_ids: res.data.user_list, type: 'delete' })
               this.$router.replace({ path: '/chat/friend' })
               this.$message.success('已成功删除好友!')
               this.$bus.$emit('getFriendList')
@@ -253,13 +268,17 @@ export default {
       }
     },
     async handleChatTo () {
-      const res = await reqGroupId(this.$store.state.User._id, this.currentUserInfo._id)
-      if (res) {
-        if (res.code === 0) {
-          this.$router.replace({ path: '/chat/group', query: { id: res.data, title: this.currentUserInfo.friend_name || this.currentUserInfo.username } })
-        } else {
-          this.$message.error(res.msg)
+      if (this.$route.query.type === 'friend') {
+        const res = await reqGroupId(this.$store.state.User._id, this.currentUserInfo._id)
+        if (res) {
+          if (res.code === 0) {
+            this.$router.replace({ path: '/chat/group', query: { id: res.data, title: this.currentUserInfo.friend_name || this.currentUserInfo.username } })
+          } else {
+            this.$message.error(res.msg)
+          }
         }
+      } else {
+        this.$router.replace({ path: '/chat/group', query: { id: this.$route.query.id } })
       }
     },
 
@@ -273,17 +292,26 @@ export default {
         }
       }
     },
-    async refreshFriend (id) {
+    async refreshFriend (id, type) {
       if (id) {
-        if (id === 'new_friend') {
+        if (type === 'new') {
           await this.getNewFriendList()
-        } else {
+        } else if (type === 'friend') {
           this.editNicknameMode = false
           const res = await reqUserInfo(this.$store.state.User._id, id)
           if (res) {
             if (res.code === 0) {
               this.currentUserInfo = res.data
               this.currentUserInfo.friend_name = res.friend.friend_name
+            } else {
+              this.$message.error(res.msg)
+            }
+          }
+        } else {
+          const res = await reqGroupDetail(id)
+          if (res) {
+            if (res.code === 0) {
+              this.currentUserInfo = res.data
             } else {
               this.$message.error(res.msg)
             }
@@ -387,6 +415,29 @@ export default {
       text-align: center;
       color: #777;
     }
+  }
+}
+
+.group-con {
+  padding: 20px 30px;
+  height: 350px;
+  overflow: auto;
+  -webkit-app-region: no-drag;
+  .group-item {
+    text-align: center;
+    padding: 10px 5px;
+    border-radius: 10px;
+   .group-avatar {
+      width: 50px;
+      height: 50px;
+   }
+   .group-username {
+     font-size: 12px;
+   }
+  }
+
+  .group-item:hover {
+    background-color: #F5F5F5;
   }
 }
 
