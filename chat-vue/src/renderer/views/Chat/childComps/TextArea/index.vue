@@ -13,6 +13,7 @@
         <i slot="reference" class="el-icon-s-opportunity" />
       </el-popover>
       <i class="el-icon-chat-dot-round" @click="handleOpenHistory" />
+      <i class="el-icon-microphone" @click="handleShowAudioDialog" />
     </div>
     <el-input
       type="textarea"
@@ -29,17 +30,31 @@
     >
       发送
     </el-button>
+
+    <el-dialog
+      title="发送语音消息"
+      :visible.sync="dialogVisible"
+      width="60%"
+    >
+      <AudioRecorder ref="recorder" @submit="handleSendAudioMsg" />
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { reqSendMsg } from '@/api/group'
 
+import AudioRecorder from '@/components/AudioRecorder'
+
 export default {
+  components: {
+    AudioRecorder
+  },
   data () {
     return {
       message: '',
-      emojiList: []
+      emojiList: [],
+      dialogVisible: false
     }
   },
   mounted () {
@@ -73,6 +88,29 @@ export default {
     },
     handleOpenHistory () {
       this.$emit('openHistory')
+    },
+    handleShowAudioDialog () {
+      this.dialogVisible = true
+      if (this.$refs.recorder) {
+        this.$refs.recorder.resetRecord()
+      }
+    },
+    async handleSendAudioMsg (url) {
+      const res = await reqSendMsg(this.$route.query.id, this.$store.state.User._id, url, 'audio')
+      if (res) {
+        if (res.code === 0) {
+          this.message = ''
+          this.$socket.emit('send_msg', {
+            user_id: this.$store.state.User._id,
+            group_id: this.$route.query.id,
+            chat_id: res.data._id
+          })
+          this.$emit('sendMsg', res.data)
+          this.dialogVisible = false
+        } else {
+          this.$message.error(res.msg)
+        }
+      }
     }
   }
 }

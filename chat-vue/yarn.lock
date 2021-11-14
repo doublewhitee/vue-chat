@@ -5809,6 +5809,11 @@ jake@^10.6.1:
     filelist "^1.0.1"
     minimatch "^3.0.4"
 
+js-audio-recorder@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.nlark.com/js-audio-recorder/download/js-audio-recorder-1.0.7.tgz#01501cb9eb143d57994b42bd5ae97974fda18908"
+  integrity sha1-AVAcuesUPVeZS0K9Wul5dP2hiQg=
+
 js-base64@^2.1.8, js-base64@^2.1.9:
   version "2.6.4"
   resolved "https://registry.nlark.com/js-base64/download/js-base64-2.6.4.tgz#f4e686c5de1ea1f867dbcad3d46d969428df98c4"
@@ -9923,6 +9928,11 @@ watchpack@^1.7.4:
   optionalDependencies:
     chokidar "^3.4.1"
     watchpack-chokidar2 "^2.0.1"
+
+wavesurfer.js@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.nlark.com/wavesurfer.js/download/wavesurfer.js-5.2.0.tgz#efae107b5b561e9bfe3fffc50e6158136a17643e"
+  integrity sha1-764Qe1tWHpv+P//FDmFYE2oXZD4=
 
 wbuf@^1.1.0, wbuf@^1.7.3:
   version "1.7.3"

@@ -23,11 +23,11 @@ export function reqChatList (groupId, skip) {
   })
 }
 
-export function reqSendMsg (groupId, userId, content) {
+export function reqSendMsg (groupId, userId, content, type = 'text') {
   return request({
     url: '/group/send',
     method: 'post',
-    data: { group_id: groupId, user_id: userId, content }
+    data: { group_id: groupId, user_id: userId, content, type }
   })
 }
 

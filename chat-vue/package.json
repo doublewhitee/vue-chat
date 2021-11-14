@@ -57,6 +57,7 @@
     "axios": "^0.18.0",
     "crypto-js": "^4.1.1",
     "element-ui": "^2.15.5",
+    "js-audio-recorder": "^1.0.7",
     "normalize.css": "^8.0.1",
     "vue": "^2.5.16",
     "vue-cropper": "^0.5.6",
@@ -64,7 +65,8 @@
     "vue-router": "^3.0.1",
     "vue-socket.io": "^3.0.10",
     "vuex": "^3.0.1",
-    "vuex-electron": "^1.0.0"
+    "vuex-electron": "^1.0.0",
+    "wavesurfer.js": "^5.2.0"
   },
   "devDependencies": {
     "ajv": "^6.5.0",

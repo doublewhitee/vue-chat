@@ -54,11 +54,12 @@ class group_controller {
   // 发送消息
   async sendChat(req, res, next) {
     try {
-      const { user_id, group_id, content } = req.body
+      const { user_id, group_id, content, type } = req.body
       const msg = await ChatModel.create({
         user: user_id,
         group: group_id,
         content: content,
+        type,
         create_at: new Date()
       })
       await GroupModel.findByIdAndUpdate(group_id, { update_at: new Date() })
@@ -74,8 +75,8 @@ class group_controller {
     try {
       const { group_id, searchText, page } = req.body
       const skip_num = 3 // 每页条数
-      const total = await ChatModel.find({ group: group_id, content: { $regex: searchText } }).countDocuments()
-      const history = await ChatModel.find({ group: group_id, content: { $regex: searchText } })
+      const total = await ChatModel.find({ group: group_id, content: { $regex: searchText }, type: { $ne: 'audio' } }).countDocuments()
+      const history = await ChatModel.find({ group: group_id, content: { $regex: searchText }, type: { $ne: 'audio' } })
         .skip((page - 1) * skip_num).limit(3)
         .populate('user', 'username avatar')
         .sort({ create_at: -1 })
@@ -95,6 +96,7 @@ class group_controller {
       const { searchText, user_id } = req.body
       const history = await ChatModel.aggregate([
         { $match: {
+          type: { $ne: 'audio' },
           'content': { $regex: searchText }
         }},
         { $lookup: { from: 'groups', localField: 'group', foreignField: '_id', as: 'group_info' } },

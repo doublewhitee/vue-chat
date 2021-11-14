@@ -19,7 +19,10 @@
             {{ chat.user.username }}
           </div>
           <div :class="chat.user._id !== $store.state.User._id ? 'chat-receive' : 'chat-send'">
-            {{ chat.content }}
+            <div v-if="chat.type === 'audio'">
+              <AudioWave :url="chat.content" :ref="chat._id" />
+            </div>
+            <div v-else>{{ chat.content }}</div>
           </div>
         </div>
         <img
@@ -40,7 +43,12 @@ import { BASE_IMG_URL } from '@/config/constant'
 import { getTimeInfo } from '@/utils/time'
 import { throttle } from '@/utils'
 
+import AudioWave from '@/components/AudioWave'
+
 export default {
+  components: {
+    AudioWave
+  },
   props: {
     type: {
       type: String,
