@@ -50,3 +50,25 @@ yarn
 // 运行项目
 yarn dev
 ```
+
+## 项目截图
+
+登陆界面
+
+<img title="" src="https://raw.githubusercontent.com/doublewhitee/vue-chat/main/screenshot/login.png" alt="login" data-align="inline" width="250">
+
+初始聊天界面
+
+<img title="" src="https://raw.githubusercontent.com/doublewhitee/vue-chat/main/screenshot/chat_1.png" alt="chat1" width="419">
+
+发送语音信息
+
+<img src="https://raw.githubusercontent.com/doublewhitee/vue-chat/main/screenshot/chat_4.png" title="" alt="img" width="420">
+
+群信息及管理
+
+<img src="https://raw.githubusercontent.com/doublewhitee/vue-chat/main/screenshot/chat_2.png" title="" alt="chat_2" width="422">
+
+好友列表及添加好友界面
+
+<img src="https://raw.githubusercontent.com/doublewhitee/vue-chat/main/screenshot/chat_3.png" title="" alt="chat_3" width="423">
